@@ -3,16 +3,22 @@ const app = express();
 const http = require('http')
 const { Server } = require('socket.io')
 const cors = require('cors')
-require('dotenv').config()
+
+if (process.env.NODE_ENV !== "production") {
+    require("dotenv").config();
+} else {
+    console.log("production code");
+}
 
 const SERVER_PORT = process.env.PORT || 3001;
-
+const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
 app.use(cors())
 const server = http.createServer(app)
 
+console.log("client url: ", CLIENT_URL)
 const io = new Server(server, {
     cors: {
-        origin: "http://localhost:3000",
+        origin: CLIENT_URL,
         methods: ["GET", "POST"]
     }
 })
