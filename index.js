@@ -29,3 +29,7 @@ io.on("connection", socket => {
 server.listen(SERVER_PORT, () => {
     console.log(`server is running on port ${SERVER_PORT}`)
 })
+
+app.get('/', (req, res) => {
+    res.send("buzzerver is running ...")
+})
