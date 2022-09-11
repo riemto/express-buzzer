@@ -10,17 +10,19 @@ if (process.env.NODE_ENV !== "production") {
     console.log("production code");
 }
 
+const corsOptions = {
+    origin: "*", // client that we allow
+    methods: ["GET", "POST"]
+}
+
 const SERVER_PORT = process.env.PORT || 3001;
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
-app.use(cors())
+app.use(cors(corsOptions))
 const server = http.createServer(app)
 
 console.log("client url: ", CLIENT_URL)
 const io = new Server(server, {
-    cors: {
-        origin: "*",
-        methods: ["GET", "POST"]
-    }
+    cors: corsOptions
 })
 
 io.on("connection", socket => {
