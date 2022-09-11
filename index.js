@@ -18,7 +18,7 @@ const server = http.createServer(app)
 console.log("client url: ", CLIENT_URL)
 const io = new Server(server, {
     cors: {
-        origin: CLIENT_URL,
+        origin: "*",
         methods: ["GET", "POST"]
     }
 })
