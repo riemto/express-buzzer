@@ -33,6 +33,20 @@ io.on("connection", socket => {
         console.log("buzzer_clicked", data)
         io.emit("notify_client_buzzer_clicked", data)
     })
+
+    socket.on("join_room", ({ gameId, name }) => {
+        console.log(`${socket.id} aka ${name} joins room: ${gameId}`)
+        socket.join(gameId);
+    })
+
+    socket.on("disconnecting", () => {
+        console.log(socket.rooms); // the Set contains at least the socket ID
+    });
+
+    socket.on("disconnect", () => {
+        // automatically leaves all rooms
+        console.log(`User disconnected: ${socket.id}`)
+    })
 })
 
 server.listen(SERVER_PORT, () => {
