@@ -3,6 +3,7 @@ const app = express();
 const http = require('http')
 const { Server } = require('socket.io')
 const cors = require('cors')
+const { v4: uuidv4 } = require('uuid');
 
 if (process.env.NODE_ENV !== "production") {
     require("dotenv").config();
@@ -40,4 +41,9 @@ server.listen(SERVER_PORT, () => {
 
 app.get('/', (req, res) => {
     res.send("buzzerver is running ...")
+})
+
+app.get('/new', (req, res) => {
+    const newId = uuidv4();
+    res.send({ gameId: newId });
 })
