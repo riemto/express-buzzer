@@ -30,23 +30,26 @@ const io = new Server(server, {
 })
 
 const buzzes = new Map();
+
+const onBuzzerClicked = ({ name, gameId, timestamp }) => {
+    console.log("buzzer_clicked", name, gameId, timestamp)
+    if (buzzes.has(gameId)) {
+        const firstPlayer = buzzes.get(gameId);
+        const delta = timestamp - firstPlayer.timestamp;
+        if (name !== firstPlayer) {
+            console.log("too late. Buzzes", buzzes)
+            io.to(socket.id).emit("too_late", { firstPlayer, delta })
+        }
+    } else {
+        buzzes.set(gameId, { name, timestamp })
+        io.to(gameId).emit("notify_client_buzzer_clicked", { name })
+    }
+}
+
 io.on("connection", socket => {
     console.log(`User connected: ${socket.id}`)
 
-    socket.on("buzzer_clicked", ({ name, gameId, timestamp }) => {
-        console.log("buzzer_clicked", name, gameId, timestamp)
-        if (buzzes.has(gameId)) {
-            const firstPlayer = buzzes.get(gameId);
-            const delta = timestamp - firstPlayer.timestamp;
-            if (name !== firstPlayer) {
-                console.log("too late. Buzzes", buzzes)
-                io.to(socket.id).emit("too_late", { firstPlayer, delta })
-            }
-        } else {
-            buzzes.set(gameId, { name, timestamp })
-            io.to(gameId).emit("notify_client_buzzer_clicked", { name })
-        }
-    })
+    socket.on("buzzer_clicked", onBuzzerClicked)
 
     socket.on("join_room", ({ gameId, name }) => {
         console.log(`${socket.id} aka ${name} joins room: ${gameId}`)
