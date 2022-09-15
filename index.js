@@ -39,6 +39,7 @@ io.on("connection", socket => {
             const firstPlayer = buzzes.get(gameId);
             const delta = timestamp - firstPlayer.timestamp;
             if (name !== firstPlayer) {
+                console.log("too late. Buzzes", buzzes)
                 io.to(socket.id).emit("too_late", { firstPlayer, delta })
             }
         } else {
@@ -53,6 +54,7 @@ io.on("connection", socket => {
     })
 
     socket.on("request_unlock", ({ gameId }) => {
+        console.log("request unlock. Buzzes: ", buzzes)
         buzzes.delete(gameId);
         io.to(gameId).emit("unlocked")
     })
