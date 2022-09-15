@@ -54,6 +54,14 @@ io.on("connection", socket => {
     socket.on("join_room", ({ gameId, name }) => {
         console.log(`${socket.id} aka ${name} joins room: ${gameId}`)
         socket.join(gameId);
+        // if buzzer already pressed at moment where socket joins
+        // notify him so he sees same results as others.
+        if (buzzes.has(gameId)) {
+            const firstPlayer = buzzes.get(gameId);
+            io.to(socket.id).emit("notify_client_buzzer_clicked", { name: firstPlayer.name })
+            // emit a note as well so he is aware of what he is seeing
+            io.to(socket.id).emit("notify_latecomer")
+        }
     })
 
     socket.on("request_unlock", ({ gameId }) => {
