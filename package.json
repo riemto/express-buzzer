@@ -4,6 +4,7 @@
   "description": "Server for buzzer app",
   "main": "index.js",
   "dependencies": {
+    "@socket.io/admin-ui": "^0.4.0",
     "cors": "^2.8.5",
     "dotenv": "^16.0.2",
     "express": "^4.18.1",
