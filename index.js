@@ -31,7 +31,7 @@ io.on("connection", socket => {
     console.log(`User connected: ${socket.id}`)
 
     socket.on("buzzer_clicked", ({ name, gameId, timestamp }) => {
-        console.log("buzzer_clicked", name, gameId, timestamp, buzzes)
+        console.log("buzzer_clicked", name, gameId, timestamp)
         if (buzzes.has(gameId)) {
             const firstPlayer = buzzes.get(gameId);
             const delta = timestamp - firstPlayer.timestamp;
