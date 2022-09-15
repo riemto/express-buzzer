@@ -26,17 +26,28 @@ const io = new Server(server, {
     cors: corsOptions
 })
 
+const buzzes = new Set();
 io.on("connection", socket => {
     console.log(`User connected: ${socket.id}`)
 
     socket.on("buzzer_clicked", ({ name, gameId, timestamp }) => {
-        console.log("buzzer_clicked", name, gameId, timestamp)
-        io.to(gameId).emit("notify_client_buzzer_clicked", { name })
+        console.log("buzzer_clicked", name, gameId, timestamp, buzzes)
+        if (buzzes.has(gameId)) {
+            io.to(socket.id).emit("too_late",)
+        } else {
+            buzzes.add(gameId)
+            io.to(gameId).emit("notify_client_buzzer_clicked", { name })
+        }
     })
 
     socket.on("join_room", ({ gameId, name }) => {
         console.log(`${socket.id} aka ${name} joins room: ${gameId}`)
         socket.join(gameId);
+    })
+
+    socket.on("request_unlock", ({ gameId }) => {
+        buzzes.delete(gameId);
+        io.to(gameId).emit("unlocked")
     })
 
     socket.on("disconnecting", () => {
