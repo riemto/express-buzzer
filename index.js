@@ -29,8 +29,8 @@ const io = new Server(server, {
 io.on("connection", socket => {
     console.log(`User connected: ${socket.id}`)
 
-    socket.on("buzzer_clicked", ({ name, gameId }) => {
-        console.log("buzzer_clicked in ", name, gameId)
+    socket.on("buzzer_clicked", ({ name, gameId, timestamp }) => {
+        console.log("buzzer_clicked", name, gameId, timestamp)
         io.to(gameId).emit("notify_client_buzzer_clicked", { name })
     })
 
