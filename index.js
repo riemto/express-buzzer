@@ -64,9 +64,13 @@ io.on("connection", socket => {
     })
 
     socket.on("request_unlock", ({ gameId }) => {
-        console.log("request unlock. Buzzes: ", buzzes)
+        console.log("-".repeat(80))
+        console.log("request unlock:");
+        console.log("Buzzes before unlock: ", buzzes)
         buzzes.delete(gameId);
         io.to(gameId).emit("unlocked")
+        console.log("Buzzes after unlock: ", buzzes)
+        console.log("-".repeat(80))
     })
 
     socket.on("disconnecting", () => {
