@@ -40,9 +40,19 @@ io.on("connection", socket => {
         if (buzzes.has(gameId)) {
             const firstPlayer = buzzes.get(gameId);
             const delta = timestamp - firstPlayer.timestamp;
-            if (name !== firstPlayer) {
-                console.log("too late. Buzzes", buzzes)
-                io.to(socket.id).emit("too_late", { firstPlayer, delta })
+            if (delta > 0) {
+                // you were too late
+                if (name !== firstPlayer) {
+                    console.log("too late. Buzzes", buzzes)
+                    io.to(socket.id).emit("too_late", { firstPlayer, delta })
+                }
+            } else {
+                // the connection was just too late. Inform everybody.
+                buzzes.set(gameId, { name, timestamp })
+                const deltaSeconds = delta / 1000;
+                const deltaSecondsRounded = Math.round(deltaSeconds * 10) / 10;
+                const alertMessage = `Sorry, actually, ${name} was ${-deltaSecondsRounded}s faster. Apparently the connection was slow. Sorry for the slowroll...`
+                io.to(gameId).emit("notify_client_buzzer_clicked", { name, alertMessage })
             }
         } else {
             buzzes.set(gameId, { name, timestamp })
