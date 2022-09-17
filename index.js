@@ -73,6 +73,8 @@ io.on("connection", socket => {
             // emit a note as well so he is aware of what he is seeing
             io.to(socket.id).emit("notify_latecomer")
         }
+        const serverTimeStamp = Date.now();
+        io.to(socket.id).emit("server_time", { serverTimeStamp })
     })
 
     socket.on("request_unlock", ({ gameId }) => {
