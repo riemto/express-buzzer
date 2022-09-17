@@ -51,7 +51,9 @@ io.on("connection", socket => {
                 buzzes.set(gameId, { name, timestamp })
                 const deltaSeconds = delta / 1000;
                 const deltaSecondsRounded = Math.round(deltaSeconds * 10) / 10;
-                const alertMessage = `Sorry, actually, ${name} was ${-deltaSecondsRounded}s faster. Apparently the connection was slow. Sorry for the slowroll...`
+                const alertMessage = `
+                    Sorry, actually, ${name} was ${-deltaSecondsRounded}s faster.
+                    Apparently the connection was slow. Sorry for the slowroll...`;
                 io.to(gameId).emit("notify_client_buzzer_clicked", { name, alertMessage })
             }
         } else {
