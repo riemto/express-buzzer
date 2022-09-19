@@ -87,6 +87,10 @@ io.on("connection", socket => {
         console.log("-".repeat(80))
     })
 
+    socket.on("ping", (callback) => {
+        callback();
+    });
+
     socket.on("disconnecting", () => {
         console.log("disconnecting", socket.id);
     });
