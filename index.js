@@ -35,8 +35,17 @@ const buzzes = new Map();
 io.on("connection", socket => {
     console.log(`User connected: ${socket.id}`)
 
-    socket.on("buzzer_clicked", ({ name, gameId, timestamp }) => {
-        console.log("buzzer_clicked", name, gameId, timestamp)
+    socket.on("buzzer_clicked", ({ name, gameId }, callback) => {
+        const timeBuzzReceivedOnServer = Date.now();
+        // send server time back to client so it can compute the latency
+        // and inform us back about that with a new emit.
+        callback(timeBuzzReceivedOnServer);
+        if (!buzzes.has(gameId)) {
+            io.to(gameId).emit("notify_client_buzzer_clicked", { name: "Who buzzzed first?!?" })
+        }
+    })
+
+    socket.on("buzzer_data", ({ name, gameId, timestamp }) => {
         if (buzzes.has(gameId)) {
             const firstPlayer = buzzes.get(gameId);
             const delta = timestamp - firstPlayer.timestamp;
@@ -78,7 +87,7 @@ io.on("connection", socket => {
     })
 
     socket.on("request_unlock", ({ gameId }) => {
-        console.log("-".repeat(80))
+        console.log("-".repeat(50))
         console.log("request unlock:");
         console.log("Buzzes before unlock: ", buzzes)
         buzzes.delete(gameId);
