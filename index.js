@@ -42,7 +42,9 @@ io.on("connection", socket => {
         callback(timeBuzzReceivedOnServer);
         if (!buzzes.has(gameId)) {
             // todo: emit somebody_clicked to visualize some drama.
-            io.to(gameId).emit("notify_client_buzzer_clicked", { name, buzzerDataComplete: false })
+            io.to(gameId).emit("notify_client_buzzer_clicked", {
+                name, buzzerDataComplete: false
+            })
         }
     })
 
@@ -64,11 +66,15 @@ io.on("connection", socket => {
                 const alertMessage = `
                     Sorry, actually, ${name} was ${-deltaSecondsRounded}s faster.
                     Apparently the connection was slow. Sorry for the slowroll...`;
-                io.to(gameId).emit("notify_client_buzzer_clicked", { name, alertMessage, buzzerDataComplete: true })
+                io.to(gameId).emit("notify_client_buzzer_clicked", {
+                    name, alertMessage, buzzerDataComplete: true
+                })
             }
         } else {
             buzzes.set(gameId, { name, timestamp })
-            io.to(gameId).emit("notify_client_buzzer_clicked", { name, buzzerDataComplete: true })
+            io.to(gameId).emit("notify_client_buzzer_clicked", {
+                name, buzzerDataComplete: true
+            })
         }
     })
 
@@ -79,7 +85,9 @@ io.on("connection", socket => {
         // notify him so he sees same results as others.
         if (buzzes.has(gameId)) {
             const firstPlayer = buzzes.get(gameId);
-            io.to(socket.id).emit("notify_client_buzzer_clicked", { name: firstPlayer.name, buzzerDataComplete: true })
+            io.to(socket.id).emit("notify_client_buzzer_clicked", {
+                name: firstPlayer.name, buzzerDataComplete: true
+            })
             // emit a note as well so he is aware of what he is seeing
             io.to(socket.id).emit("notify_latecomer")
         }
