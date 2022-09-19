@@ -41,7 +41,8 @@ io.on("connection", socket => {
         // and inform us back about that with a new emit.
         callback(timeBuzzReceivedOnServer);
         if (!buzzes.has(gameId)) {
-            io.to(gameId).emit("notify_client_buzzer_clicked", { name: "Who buzzzed first?!?" })
+            // todo: emit somebody_clicked to visualize some drama.
+            io.to(gameId).emit("notify_client_buzzer_clicked", { name })
         }
     })
 
