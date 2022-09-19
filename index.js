@@ -5,7 +5,7 @@ const { Server } = require('socket.io')
 const cors = require('cors')
 const { v4: uuidv4 } = require('uuid');
 
-const { instrument } = require("@socket.io/admin-ui")
+const { instrument } = require("@socket.io/admin-ui");
 
 if (process.env.NODE_ENV !== "production") {
     require("dotenv").config();
@@ -91,8 +91,13 @@ io.on("connection", socket => {
         console.log("-".repeat(50))
         console.log("request unlock:");
         console.log("Buzzes before unlock: ", buzzes)
-        buzzes.delete(gameId);
-        io.to(gameId).emit("unlocked")
+        if (buzzes.has(gameId)) {
+            buzzes.delete(gameId);
+            io.to(gameId).emit("unlocked")
+        } else {
+            console.log("no buzz found. Maybe you were too fast?")
+            io.to(socket.id).emit("buzz_not_yet_processed");
+        }
         console.log("Buzzes after unlock: ", buzzes)
         console.log("-".repeat(80))
     })
