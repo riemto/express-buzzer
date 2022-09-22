@@ -40,6 +40,7 @@ io.on("connection", socket => {
         // send server time back to client so it can compute the latency
         // and inform us back about that with a new emit.
         callback(timeBuzzReceivedOnServer);
+
         if (!buzzes.has(gameId)) {
             io.to(gameId).emit("notify_client_buzzer_clicked", {
                 name, buzzerDataComplete: false
@@ -58,16 +59,18 @@ io.on("connection", socket => {
                     io.to(socket.id).emit("too_late", { firstPlayer, delta })
                 }
             } else {
-                // the connection was just too late. Inform everybody.
-                buzzes.set(gameId, { name, timestamp })
-                const deltaSeconds = delta / 1000;
-                const deltaSecondsRounded = Math.round(deltaSeconds * 10) / 10;
-                const alertMessage = `
-                    Sorry, actually, ${name} was ${-deltaSecondsRounded}s faster.
-                    Apparently the connection was slow. Sorry for the slowroll...`;
-                io.to(gameId).emit("notify_client_buzzer_clicked", {
-                    name, alertMessage, buzzerDataComplete: true
-                })
+                if (name !== firstPlayer) {
+                    // the connection was just too late. Inform everybody.
+                    buzzes.set(gameId, { name, timestamp })
+                    const deltaSeconds = delta / 1000;
+                    const deltaSecondsRounded = Math.round(deltaSeconds * 10) / 10;
+                    const alertMessage = `
+                        Sorry, actually, ${name} was ${-deltaSecondsRounded}s faster.
+                        Apparently the connection was slow. Sorry for the slowroll...`;
+                    io.to(gameId).emit("notify_client_buzzer_clicked", {
+                        name, alertMessage, buzzerDataComplete: true
+                    })
+                }
             }
         } else {
             buzzes.set(gameId, { name, timestamp })
