@@ -42,7 +42,9 @@ io.on("connection", socket => {
         callback(timeBuzzReceivedOnServer);
 
         if (!buzzes.has(gameId)) {
-            io.to(gameId).emit("notify_client_buzzer_clicked", {
+            // broadcast to others as well. Own socket is already
+            // displaying info to have faster response experience.
+            socket.to(gameId).emit("notify_client_buzzer_clicked", {
                 name, buzzerDataComplete: false
             })
         }
