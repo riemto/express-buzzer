@@ -101,13 +101,8 @@ io.on("connection", socket => {
         console.log("-".repeat(50))
         console.log("request unlock:");
         console.log("Buzzes before unlock: ", buzzes)
-        if (buzzes.has(gameId)) {
-            buzzes.delete(gameId);
-            io.to(gameId).emit("unlocked")
-        } else {
-            console.log("no buzz found. Maybe you were too fast?")
-            io.to(socket.id).emit("buzz_not_yet_processed");
-        }
+        buzzes.delete(gameId);
+        io.to(gameId).emit("unlocked")
         console.log("Buzzes after unlock: ", buzzes)
         console.log("-".repeat(80))
     })
