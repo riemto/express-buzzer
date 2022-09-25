@@ -35,7 +35,7 @@ const buzzes = new Map();
 io.on("connection", socket => {
     console.log(`User connected: ${socket.id}`)
 
-    socket.on("buzzer_clicked", ({ name, gameId }, callback) => {
+    socket.on("buzzer_clicked", ({ gameId, name, color }, callback) => {
         const timeBuzzReceivedOnServer = Date.now();
         // send server time back to client so it can compute the latency
         // and inform us back about that with a new emit.
@@ -45,12 +45,14 @@ io.on("connection", socket => {
             // broadcast to others as well. Own socket is already
             // displaying info to have faster response experience.
             socket.to(gameId).emit("notify_client_buzzer_clicked", {
-                name, buzzerDataComplete: false
+                name,
+                color,
+                buzzerDataComplete: false,
             })
         }
     })
 
-    socket.on("buzzer_data", ({ name, gameId, timestamp }) => {
+    socket.on("buzzer_data", ({ name, gameId, color, timestamp }) => {
         if (buzzes.has(gameId)) {
             const firstPlayer = buzzes.get(gameId);
             const delta = timestamp - firstPlayer.timestamp;
@@ -63,21 +65,26 @@ io.on("connection", socket => {
             } else {
                 if (name !== firstPlayer) {
                     // the connection was just too late. Inform everybody.
-                    buzzes.set(gameId, { name, timestamp })
+                    buzzes.set(gameId, { name, color, timestamp })
                     const deltaSeconds = delta / 1000;
                     const deltaSecondsRounded = Math.round(deltaSeconds * 10) / 10;
                     const alertMessage = `
                         Sorry, actually, ${name} was ${-deltaSecondsRounded}s faster.
                         Apparently the connection was slow. Sorry for the slowroll...`;
                     io.to(gameId).emit("notify_client_buzzer_clicked", {
-                        name, alertMessage, buzzerDataComplete: true
+                        name,
+                        color,
+                        alertMessage,
+                        buzzerDataComplete: true
                     })
                 }
             }
         } else {
-            buzzes.set(gameId, { name, timestamp })
+            buzzes.set(gameId, { name, color, timestamp })
             io.to(gameId).emit("notify_client_buzzer_clicked", {
-                name, buzzerDataComplete: true
+                name,
+                color,
+                buzzerDataComplete: true
             })
         }
     })
@@ -90,7 +97,9 @@ io.on("connection", socket => {
         if (buzzes.has(gameId)) {
             const firstPlayer = buzzes.get(gameId);
             io.to(socket.id).emit("notify_client_buzzer_clicked", {
-                name: firstPlayer.name, buzzerDataComplete: true
+                name: firstPlayer.name,
+                color: firstPlayer.color,
+                buzzerDataComplete: true
             })
             // emit a note as well so he is aware of what he is seeing
             io.to(socket.id).emit("notify_latecomer")
