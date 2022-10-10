@@ -42,11 +42,14 @@ io.on("connection", socket => {
         io.to(gameId).emit("unlocked");
     })
 
-    socket.on("buzzer_clicked", ({ gameId, name, color }, callback) => {
+    socket.on("buzzer_clicked", (
+        { gameId, name, color },
+        correctServerTimeAndEmitDataToServer
+    ) => {
         const timeBuzzReceivedOnServer = Date.now();
         // send server time back to client so it can compute the latency
         // and inform us back about that with a new emit.
-        callback(timeBuzzReceivedOnServer);
+        correctServerTimeAndEmitDataToServer(timeBuzzReceivedOnServer);
 
         if (!buzzes.has(gameId)) {
             // broadcast to others as well. Own socket is already
@@ -96,7 +99,7 @@ io.on("connection", socket => {
         }
     })
 
-    socket.on("join_room", ({ gameId, name }) => {
+    socket.on("join_room", ({ gameId, name }, setGameStatus) => {
         console.log(`${socket.id} aka ${name} joins room: ${gameId}`)
         socket.join(gameId);
         // if buzzer already pressed at moment where socket joins
@@ -114,6 +117,9 @@ io.on("connection", socket => {
 
         if (unlockedGames.has(gameId)) {
             io.to(socket.id).emit("unlock")
+        }
+        if (setGameStatus) {
+            setGameStatus({ unlocked: unlockedGames.has(gameId) })
         }
     })
 
