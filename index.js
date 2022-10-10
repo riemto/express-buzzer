@@ -30,10 +30,17 @@ const io = new Server(server, {
 })
 
 const buzzes = new Map();
-
+const unlockedGames = new Set();
 
 io.on("connection", socket => {
     console.log(`User connected: ${socket.id}`)
+
+    socket.on("start", ({ gameId }) => {
+        unlockedGames.add(gameId);
+        console.log("started", gameId)
+        console.log("unlocked games:", unlockedGames)
+        io.to(gameId).emit("unlocked");
+    })
 
     socket.on("buzzer_clicked", ({ gameId, name, color }, callback) => {
         const timeBuzzReceivedOnServer = Date.now();
@@ -104,8 +111,10 @@ io.on("connection", socket => {
             // emit a note as well so he is aware of what he is seeing
             io.to(socket.id).emit("notify_latecomer")
         }
-        const serverTimeStamp = Date.now();
-        io.to(socket.id).emit("server_time", { serverTimeStamp })
+
+        if (unlockedGames.has(gameId)) {
+            io.to(socket.id).emit("unlock")
+        }
     })
 
     socket.on("request_unlock", ({ gameId }) => {
@@ -119,6 +128,7 @@ io.on("connection", socket => {
     })
 
     socket.on("ping", (callback) => {
+        // used for debugging
         callback();
     });
 
