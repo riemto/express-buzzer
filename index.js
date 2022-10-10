@@ -123,6 +123,12 @@ io.on("connection", socket => {
         }
     })
 
+
+    socket.on("join_showpage", ({ gameId, name }) => {
+        console.log(`${socket.id} aka ${name} joins show page for: ${gameId}`)
+        socket.join(gameId);
+    })
+
     socket.on("request_unlock", ({ gameId }) => {
         console.log("-".repeat(50))
         console.log("request unlock:");
