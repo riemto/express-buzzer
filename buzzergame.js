@@ -39,12 +39,21 @@ exports.initGame = (sio, gameSocket) => {
    *       HOST FUNCTIONS        *
    *                             *
    ******************************* */
+
+/**
+ * Create game was clicked and 'hostCreateNewGame' event occured.
+ * 
+ * @param gameId id of game from URL
+ * @param name hostname
+ */
 function hostCreateNewGame({ gameId, name }) {
     console.log(`${socket.id} aka ${name} joins show page for: ${gameId}`)
     socket.join(gameId);
 }
 
-
+/**
+ * Host clicked the START button and 'hostStartGame' event occured.
+ */
 function hostStartGame({ gameId }) {
     unlockedGames.add(gameId);
     console.log("started", gameId)
@@ -52,14 +61,14 @@ function hostStartGame({ gameId }) {
     io.to(gameId).emit("unlock");
 }
 
+
+/**
+ * Host unlocks all buzzers so that players are ready to hit buzzer
+ */
 function hostUnlock({ gameId }) {
-    console.log("-".repeat(50))
-    console.log("request unlock:");
-    console.log("Buzzes before unlock: ", buzzes)
+    // reset the buzzers
     buzzes.delete(gameId);
     io.to(gameId).emit("unlock")
-    console.log("Buzzes after unlock: ", buzzes)
-    console.log("-".repeat(80))
 }
 
 /* *****************************
@@ -67,64 +76,10 @@ function hostUnlock({ gameId }) {
    *     PLAYER FUNCTIONS      *
    *                           *
    ***************************** */
-function playerHitBuzzer(
-    { gameId, name, color },
-    correctServerTimeAndEmitDataToServer
-) {
-    const timeBuzzReceivedOnServer = Date.now();
-    // send server time back to client so it can compute the latency
-    // and inform us back about that with a new emit.
-    correctServerTimeAndEmitDataToServer(timeBuzzReceivedOnServer);
-
-    if (!buzzes.has(gameId)) {
-        // broadcast to others as well. Own socket is already
-        // displaying info to have faster response experience.
-        socket.to(gameId).emit("showBuzzerData", {
-            name,
-            color,
-            buzzerDataComplete: false,
-        })
-    }
-}
-
-function playerSendData({ name, gameId, color, timestamp }) {
-    if (buzzes.has(gameId)) {
-        const firstPlayer = buzzes.get(gameId);
-        const delta = timestamp - firstPlayer.timestamp;
-        if (delta > 0) {
-            // you were too late
-            console.log("you were too late!")
-            if (name !== firstPlayer) {
-                console.log("too late. Buzzes", buzzes)
-                io.to(socket.id).emit("notifyPlayerIsTooLate", { firstPlayer, delta })
-            }
-        } else {
-            if (name !== firstPlayer) {
-                // the connection was just too late. Inform everybody.
-                buzzes.set(gameId, { name, color, timestamp })
-                const deltaSeconds = delta / 1000;
-                const deltaSecondsRounded = Math.round(deltaSeconds * 10) / 10;
-                const alertMessage = `
-                Sorry, actually, ${name} was ${-deltaSecondsRounded}s faster.
-                Apparently the connection was slow. Sorry for the slowroll...`;
-                io.to(gameId).emit("showBuzzerData", {
-                    name,
-                    color,
-                    alertMessage,
-                    buzzerDataComplete: true
-                })
-            }
-        }
-    } else {
-        buzzes.set(gameId, { name, color, timestamp })
-        io.to(gameId).emit("showBuzzerData", {
-            name,
-            color,
-            buzzerDataComplete: true
-        })
-    }
-}
-
+/**
+ * Player connects to the game.
+ * @param setGameStatus callback to provide game status to client.
+ */
 function playerJoinGame({ gameId, name }, setGameStatus) {
     console.log(`${socket.id} aka ${name} joins room: ${gameId}`)
     socket.join(gameId);
@@ -146,6 +101,59 @@ function playerJoinGame({ gameId, name }, setGameStatus) {
     }
     if (setGameStatus) {
         setGameStatus({ unlocked: unlockedGames.has(gameId) })
+    }
+}
+
+function playerHitBuzzer({ gameId, name, color },
+    correctServerTimeAndEmitDataToServer) {
+    const timeBuzzReceivedOnServer = Date.now();
+    // send server time back to client so it can compute the latency
+    // and inform us back about that with a new emit.
+    correctServerTimeAndEmitDataToServer(timeBuzzReceivedOnServer);
+
+    if (!buzzes.has(gameId)) {
+        // broadcast to others as well. Own socket is already
+        // displaying info to have faster response experience.
+        socket.to(gameId).emit("showBuzzerData", {
+            name,
+            color,
+            buzzerDataComplete: false,
+        })
+    }
+}
+
+function playerSendData({ name, gameId, color, timestamp }) {
+    if (buzzes.has(gameId)) {
+        const firstPlayer = buzzes.get(gameId);
+        if (name !== firstPlayer) {
+            const delta = timestamp - firstPlayer.timestamp;
+            if (delta > 0) {
+                console.log("too late. Buzzes", buzzes)
+                io.to(socket.id).emit("notifyPlayerIsTooLate", { firstPlayer, delta })
+            } else {
+                // the connection was just too late. Inform everybody.
+                buzzes.set(gameId, { name, color, timestamp })
+                const deltaSeconds = delta / 1000;
+                const deltaSecondsRounded = Math.round(deltaSeconds * 10) / 10;
+                const alertMessage = `
+                Sorry, actually, ${name} was ${-deltaSecondsRounded}s faster.
+                Apparently the connection was slow. Sorry for the slowroll...`;
+                io.to(gameId).emit("showBuzzerData", {
+                    name,
+                    color,
+                    alertMessage,
+                    buzzerDataComplete: true
+                })
+            }
+        }
+    } else {
+        // first buzzer!
+        buzzes.set(gameId, { name, color, timestamp })
+        io.to(gameId).emit("showBuzzerData", {
+            name,
+            color,
+            buzzerDataComplete: true
+        })
     }
 }
 
