@@ -39,7 +39,7 @@ io.on("connection", socket => {
         unlockedGames.add(gameId);
         console.log("started", gameId)
         console.log("unlocked games:", unlockedGames)
-        io.to(gameId).emit("unlocked");
+        io.to(gameId).emit("unlock");
     })
 
     socket.on("buzzer_clicked", (
@@ -54,7 +54,7 @@ io.on("connection", socket => {
         if (!buzzes.has(gameId)) {
             // broadcast to others as well. Own socket is already
             // displaying info to have faster response experience.
-            socket.to(gameId).emit("notify_client_buzzer_clicked", {
+            socket.to(gameId).emit("showBuzzerData", {
                 name,
                 color,
                 buzzerDataComplete: false,
@@ -68,9 +68,10 @@ io.on("connection", socket => {
             const delta = timestamp - firstPlayer.timestamp;
             if (delta > 0) {
                 // you were too late
+                console.log("you were too late!")
                 if (name !== firstPlayer) {
                     console.log("too late. Buzzes", buzzes)
-                    io.to(socket.id).emit("too_late", { firstPlayer, delta })
+                    io.to(socket.id).emit("notifyPlayerIsTooLate", { firstPlayer, delta })
                 }
             } else {
                 if (name !== firstPlayer) {
@@ -81,7 +82,7 @@ io.on("connection", socket => {
                     const alertMessage = `
                         Sorry, actually, ${name} was ${-deltaSecondsRounded}s faster.
                         Apparently the connection was slow. Sorry for the slowroll...`;
-                    io.to(gameId).emit("notify_client_buzzer_clicked", {
+                    io.to(gameId).emit("showBuzzerData", {
                         name,
                         color,
                         alertMessage,
@@ -91,7 +92,7 @@ io.on("connection", socket => {
             }
         } else {
             buzzes.set(gameId, { name, color, timestamp })
-            io.to(gameId).emit("notify_client_buzzer_clicked", {
+            io.to(gameId).emit("showBuzzerData", {
                 name,
                 color,
                 buzzerDataComplete: true
@@ -106,13 +107,13 @@ io.on("connection", socket => {
         // notify him so he sees same results as others.
         if (buzzes.has(gameId)) {
             const firstPlayer = buzzes.get(gameId);
-            io.to(socket.id).emit("notify_client_buzzer_clicked", {
+            io.to(socket.id).emit("showBuzzerData", {
                 name: firstPlayer.name,
                 color: firstPlayer.color,
                 buzzerDataComplete: true
             })
             // emit a note as well so he is aware of what he is seeing
-            io.to(socket.id).emit("notify_latecomer")
+            io.to(socket.id).emit("notifyLatecomer")
         }
 
         if (unlockedGames.has(gameId)) {
@@ -134,7 +135,7 @@ io.on("connection", socket => {
         console.log("request unlock:");
         console.log("Buzzes before unlock: ", buzzes)
         buzzes.delete(gameId);
-        io.to(gameId).emit("unlocked")
+        io.to(gameId).emit("unlock")
         console.log("Buzzes after unlock: ", buzzes)
         console.log("-".repeat(80))
     })
