@@ -17,14 +17,14 @@ exports.initGame = (sio, gameSocket) => {
     unlockedGames = new Set();
 
     // HOST
-    socket.on("hostCreateNewGame", hostCreateNewGame);
+    socket.on("hostConnect", hostConnect);
     socket.on("hostStartGame", hostStartGame);
     socket.on("hostUnlock", hostUnlock);
 
     // PLAYER
+    socket.on("playerConnect", playerConnect);
     socket.on("playerHitBuzzer", playerHitBuzzer)
     socket.on("playerSendData", playerSendData);
-    socket.on("playerJoinGame", playerJoinGame);
 
     // DEBUG
     socket.on("debugPing", debugPing);
@@ -41,13 +41,13 @@ exports.initGame = (sio, gameSocket) => {
    ******************************* */
 
 /**
- * Create game was clicked and 'hostCreateNewGame' event occured.
+ * Create game was clicked and 'hostConnect' event occured.
  * 
  * @param gameId id of game from URL
  * @param name hostname
  */
-function hostCreateNewGame({ gameId, name }) {
-    console.log(`${socket.id} aka ${name} joins show page for: ${gameId}`)
+function hostConnect({ gameId }) {
+    console.log(`HOST: ${socket.id} joins show page for: ${gameId}`)
     socket.join(gameId);
 }
 
@@ -80,7 +80,7 @@ function hostUnlock({ gameId }) {
  * Player connects to the game.
  * @param setGameStatus callback to provide game status to client.
  */
-function playerJoinGame({ gameId, name }, setGameStatus) {
+function playerConnect({ gameId, name, color }, setGameStatus) {
     console.log(`${socket.id} aka ${name} joins room: ${gameId}`)
     socket.join(gameId);
     // if buzzer already pressed at moment where socket joins
@@ -102,6 +102,8 @@ function playerJoinGame({ gameId, name }, setGameStatus) {
     if (setGameStatus) {
         setGameStatus({ unlocked: unlockedGames.has(gameId) })
     }
+    // Inform rest that the player connected
+    io.to(gameId).emit("playerConnected", { gameId, name, socketId: socket.id, color })
 }
 
 function playerHitBuzzer({ gameId, name, color },
