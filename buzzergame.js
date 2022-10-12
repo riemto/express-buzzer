@@ -2,6 +2,14 @@ let buzzes;
 let unlockedGames;
 let io;
 let socket;
+let playersMap;
+
+exports.initGame = () => {
+    console.log("init game")
+    buzzes = new Map(); // gameId -> first player who buzzed
+    playersMap = new Map(); // gameId -> players
+    unlockedGames = new Set();
+}
 
 /**
  * This function is called by index.js to initialize a new game instance.
@@ -9,12 +17,11 @@ let socket;
  * @param sio The Socket.IO library
  * @param gameSocket The socket object for the connected client.
  */
-exports.initGame = (sio, gameSocket) => {
+exports.connectSocket = (sio, gameSocket) => {
+    console.log("connect socket", gameSocket.id)
     // Set global variables based on input so that rest of the file can access them.
     io = sio;
     socket = gameSocket;
-    buzzes = new Map();
-    unlockedGames = new Set();
 
     // HOST
     socket.on("hostConnect", hostConnect);
@@ -80,9 +87,14 @@ function hostUnlock({ gameId }) {
  * Player connects to the game.
  * @param setGameStatus callback to provide game status to client.
  */
-function playerConnect({ gameId, name, color }, setGameStatus) {
+function playerConnect({ gameId, name, color, socketId }, setGameStatus) {
     console.log(`${socket.id} aka ${name} joins room: ${gameId}`)
     socket.join(gameId);
+    let players = playersMap.get(gameId) || new Map();
+    const newPlayer = { name, socketId, color };
+    players.set(socketId, newPlayer);
+    playersMap.set(gameId, players)
+    console.log("players in game", Array.from(players.values()))
     // if buzzer already pressed at moment where socket joins
     // notify him so he sees same results as others.
     if (buzzes.has(gameId)) {
@@ -103,7 +115,7 @@ function playerConnect({ gameId, name, color }, setGameStatus) {
         setGameStatus({ unlocked: unlockedGames.has(gameId) })
     }
     // Inform rest that the player connected
-    io.to(gameId).emit("playerConnected", { gameId, name, socketId: socket.id, color })
+    io.to(gameId).emit("playerConnected", { gameId, name, socketId: socket.id, color, players: Array.from(players.values()) })
 }
 
 function playerHitBuzzer({ gameId, name, color },

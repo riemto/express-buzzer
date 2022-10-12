@@ -23,13 +23,14 @@ const corsOptions = {
 app.use(cors(corsOptions))
 const server = http.createServer(app)
 
+buzzergame.initGame();
 console.log("client url: ", CLIENT_URL)
 const io = new Server(server, {
     cors: corsOptions
 })
 
 io.on("connection", socket => {
-    buzzergame.initGame(io, socket);
+    buzzergame.connectSocket(io, socket);
 })
 
 server.listen(SERVER_PORT, () => {
