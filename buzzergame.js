@@ -182,6 +182,13 @@ function playerSendData({ name, gameId, color, timestamp }) {
  */
 function disconnecting() {
     console.log("disconnecting", socket.id);
+    // Remove socket from players and update game
+    playersMap.forEach((players, gameId) => {
+        success = players.delete(socket.id);
+        if (success) {
+            io.to(gameId).emit("playerUpdated", { players: Array.from(players.values()) })
+        }
+    })
 }
 
 function disconnect() {
