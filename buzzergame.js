@@ -192,6 +192,7 @@ function disconnecting() {
     playersMap.forEach((players, gameId) => {
         success = players.delete(socket.id);
         if (success) {
+            console.log('successfully removed ', socket.id)
             io.to(gameId).emit("playerUpdated", {
                 players: Array.from(players.values())
             })
