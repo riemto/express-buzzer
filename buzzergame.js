@@ -59,6 +59,7 @@ function hostConnect({ gameId }, setPlayers) {
     socket.join(gameId);
     const players = playersMap.get(gameId) || new Map();
     setPlayers(Array.from(players.values()))
+    console.log("PLAYERS WHEN HOST CONNECTS", Array.from(players.values()))
 }
 
 /**
@@ -113,7 +114,9 @@ function playerConnect({ gameId, player }, setGameStatus) {
     console.log(`${socketId} aka ${name} joins room: ${gameId}`)
     socket.join(gameId);
     let players = playersMap.get(gameId) || new Map();
-    players.set(socketId, player);
+    const oldVersionOfPlayer = players.get(socketId);
+    const updatedPlayer = { ...oldVersionOfPlayer, ...player };
+    players.set(socketId, updatedPlayer);
     playersMap.set(gameId, players)
     console.log("players in game", Array.from(players.values()))
     // if buzzer already pressed at moment where socket joins
