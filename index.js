@@ -15,6 +15,8 @@ if (process.env.NODE_ENV !== "production") {
 
 const SERVER_PORT = process.env.PORT || 3001;
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
+console.log("client url: ", CLIENT_URL)
+
 const corsOptions = {
     origin: [CLIENT_URL, "https://admin.socket.io"],
     methods: ["GET", "POST"],
@@ -24,7 +26,6 @@ app.use(cors(corsOptions))
 const server = http.createServer(app)
 
 buzzergame.initGame();
-console.log("client url: ", CLIENT_URL)
 const io = new Server(server, {
     cors: corsOptions
 })

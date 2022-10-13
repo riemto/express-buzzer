@@ -53,9 +53,11 @@ exports.connectSocket = (sio, gameSocket) => {
  * @param gameId id of game from URL
  * @param name hostname
  */
-function hostConnect({ gameId }) {
+function hostConnect({ gameId }, setPlayers) {
     console.log(`HOST: ${socket.id} joins show page for: ${gameId}`)
     socket.join(gameId);
+    const players = playersMap.get(gameId);
+    setPlayers(Array.from(players.values()))
 }
 
 /**
