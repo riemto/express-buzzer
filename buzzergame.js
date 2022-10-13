@@ -27,6 +27,7 @@ exports.connectSocket = (sio, gameSocket) => {
     socket.on("hostConnect", hostConnect);
     socket.on("hostStartGame", hostStartGame);
     socket.on("hostUnlock", hostUnlock);
+    socket.on("hostPlayerScore", hostPlayerScore);
 
     // PLAYER
     socket.on("playerConnect", playerConnect);
@@ -80,6 +81,23 @@ function hostUnlock({ gameId }) {
     io.to(gameId).emit("unlock")
 }
 
+function hostPlayerScore({ gameId, socketId, name, delta }) {
+    const players = playersMap.get(gameId);
+    const player = players.get(socketId);
+    if (player.name == name) {
+        player.score = (player.score || 0) + delta;
+    }
+    // note: Since it is a reference to the player
+    // players is already up to date.
+    // playersMap is up to date as well because players is
+    // a reference. So no need to inject the updated player
+    // back into players and players back into playersMap.
+
+    io.to(gameId).emit("playerUpdated", {
+        players: Array.from(players.values())
+    })
+}
+
 /* *****************************
    *                           *
    *     PLAYER FUNCTIONS      *
@@ -105,7 +123,8 @@ function playerConnect({ gameId, player }, setGameStatus) {
         io.to(socket.id).emit("showBuzzerData", {
             name: firstPlayer.name,
             color: firstPlayer.color,
-            buzzerDataComplete: true
+            buzzerDataComplete: true,
+            socketId
         })
         // emit a note as well so he is aware of what he is seeing
         io.to(socket.id).emit("notifyLatecomer")
@@ -124,7 +143,7 @@ function playerConnect({ gameId, player }, setGameStatus) {
     })
 }
 
-function playerHitBuzzer({ gameId, name, color },
+function playerHitBuzzer({ gameId, name, color, socketId },
     correctServerTimeAndEmitDataToServer) {
     const timeBuzzReceivedOnServer = Date.now();
     // send server time back to client so it can compute the latency
@@ -138,11 +157,12 @@ function playerHitBuzzer({ gameId, name, color },
             name,
             color,
             buzzerDataComplete: false,
+            socketId
         })
     }
 }
 
-function playerSendData({ name, gameId, color, timestamp }) {
+function playerSendData({ name, gameId, color, timestamp, socketId }) {
     if (buzzes.has(gameId)) {
         const firstPlayer = buzzes.get(gameId);
         if (name !== firstPlayer) {
@@ -162,7 +182,8 @@ function playerSendData({ name, gameId, color, timestamp }) {
                     name,
                     color,
                     alertMessage,
-                    buzzerDataComplete: true
+                    buzzerDataComplete: true,
+                    socketId
                 })
             }
         }
@@ -172,7 +193,8 @@ function playerSendData({ name, gameId, color, timestamp }) {
         io.to(gameId).emit("showBuzzerData", {
             name,
             color,
-            buzzerDataComplete: true
+            buzzerDataComplete: true,
+            socketId
         })
     }
 }
