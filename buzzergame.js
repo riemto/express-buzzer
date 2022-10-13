@@ -118,8 +118,6 @@ function playerConnect({ gameId, player }, setGameStatus) {
         setGameStatus({ unlocked: unlockedGames.has(gameId) })
     }
 
-    console.log("player update: ", Array.from(players.values()))
-
     // Inform rest that the player connected
     io.to(gameId).emit("playerUpdated", {
         players: Array.from(players.values())
