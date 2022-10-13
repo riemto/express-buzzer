@@ -89,12 +89,13 @@ function hostUnlock({ gameId }) {
  * Player connects to the game.
  * @param setGameStatus callback to provide game status to client.
  */
-function playerConnect({ gameId, name, color, socketId }, setGameStatus) {
-    console.log(`${socket.id} aka ${name} joins room: ${gameId}`)
+function playerConnect({ gameId, player }, setGameStatus) {
+    const { name, socketId, color } = player;
+    console.log(name, socketId, color)
+    console.log(`${socketId} aka ${name} joins room: ${gameId}`)
     socket.join(gameId);
     let players = playersMap.get(gameId) || new Map();
-    const newPlayer = { name, socketId, color };
-    players.set(socketId, newPlayer);
+    players.set(socket.id, player);
     playersMap.set(gameId, players)
     console.log("players in game", Array.from(players.values()))
     // if buzzer already pressed at moment where socket joins
@@ -117,7 +118,11 @@ function playerConnect({ gameId, name, color, socketId }, setGameStatus) {
         setGameStatus({ unlocked: unlockedGames.has(gameId) })
     }
     // Inform rest that the player connected
-    io.to(gameId).emit("playerConnected", { gameId, name, socketId: socket.id, color, players: Array.from(players.values()) })
+    io.to(gameId).emit("playerConnected", {
+        gameId,
+        player,
+        players: Array.from(players.values())
+    })
 }
 
 function playerHitBuzzer({ gameId, name, color },
@@ -188,7 +193,9 @@ function disconnecting() {
     playersMap.forEach((players, gameId) => {
         success = players.delete(socket.id);
         if (success) {
-            io.to(gameId).emit("playerUpdated", { players: Array.from(players.values()) })
+            io.to(gameId).emit("playerUpdated", {
+                players: Array.from(players.values())
+            })
         }
     })
 }
