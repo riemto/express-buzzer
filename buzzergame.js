@@ -115,7 +115,9 @@ function playerConnect({ gameId, player }, setGameStatus) {
     socket.join(gameId);
     let players = playersMap.get(gameId) || new Map();
     const oldVersionOfPlayer = players.get(socketId);
+    console.log("old version of player: ", oldVersionOfPlayer)
     const updatedPlayer = { ...oldVersionOfPlayer, ...player };
+    console.log("updated version of player: ", updatedPlayer)
     players.set(socketId, updatedPlayer);
     playersMap.set(gameId, players)
     console.log("players in game", Array.from(players.values()))
