@@ -95,7 +95,7 @@ function playerConnect({ gameId, player }, setGameStatus) {
     console.log(`${socketId} aka ${name} joins room: ${gameId}`)
     socket.join(gameId);
     let players = playersMap.get(gameId) || new Map();
-    players.set(socket.id, player);
+    players.set(socketId, player);
     playersMap.set(gameId, players)
     console.log("players in game", Array.from(players.values()))
     // if buzzer already pressed at moment where socket joins
@@ -117,10 +117,11 @@ function playerConnect({ gameId, player }, setGameStatus) {
     if (setGameStatus) {
         setGameStatus({ unlocked: unlockedGames.has(gameId) })
     }
+
+    console.log("player update: ", Array.from(players.values()))
+
     // Inform rest that the player connected
-    io.to(gameId).emit("playerConnected", {
-        gameId,
-        player,
+    io.to(gameId).emit("playerUpdated", {
         players: Array.from(players.values())
     })
 }
