@@ -145,13 +145,8 @@ function playerConnect({ gameId, player }, setGameStatus) {
     // if buzzer already pressed at moment where socket joins
     // notify him so he sees same results as others.
     if (buzzes.has(gameId)) {
-        const firstPlayer = buzzes.get(gameId);
-        io.to(socket.id).emit("showBuzzerData", {
-            name: firstPlayer.name,
-            color: firstPlayer.color,
-            buzzerDataComplete: true,
-            socketId: firstPlayer.socketId
-        })
+        const firstBuzzData = buzzes.get(gameId);
+        io.to(socket.id).emit("showBuzzerData", { ...firstBuzzData, buzzerDataComplete: true })
         // emit a note as well so he is aware of what he is seeing
         io.to(socket.id).emit("notifyLatecomer")
     }
@@ -190,13 +185,12 @@ function playerHitBuzzer({ gameId, name, color, socketId },
 
 function playerSendData({ gameId, name, color, timestamp, socketId }) {
     if (buzzes.has(gameId)) {
-        const firstPlayer = buzzes.get(gameId);
-        if (name !== firstPlayer) {
-            const delta = timestamp - firstPlayer.timestamp;
+        const firstBuzzData = buzzes.get(gameId);
+        if (name !== firstBuzzData.name) {
+            const delta = timestamp - firstBuzzData.timestamp;
             if (delta > 0) {
                 console.log("too late. Buzzes", buzzes)
-                io.to(socket.id).emit("showBuzzerData", firstPlayer)
-                io.to(socket.id).emit("notifyPlayerIsTooLate", { firstPlayer, delta })
+                io.to(socket.id).emit("notifyPlayerIsTooLate", { firstBuzzData, delta })
             } else {
                 // the connection was just too late. Inform everybody.
                 buzzes.set(gameId, { name, color, timestamp, socketId, buzzerDataComplete: true })
@@ -213,6 +207,9 @@ function playerSendData({ gameId, name, color, timestamp, socketId }) {
                     socketId
                 })
             }
+        } else {
+            // that player was actually the first person to buzz. Just show info again.
+            io.to(socket.id).emit("showBuzzerData", firstBuzzData)
         }
     } else {
         // first buzzer!
