@@ -150,7 +150,7 @@ function playerConnect({ gameId, player }, setGameStatus) {
             name: firstPlayer.name,
             color: firstPlayer.color,
             buzzerDataComplete: true,
-            socketId
+            socketId: firstPlayer.socketId
         })
         // emit a note as well so he is aware of what he is seeing
         io.to(socket.id).emit("notifyLatecomer")
@@ -188,17 +188,18 @@ function playerHitBuzzer({ gameId, name, color, socketId },
     }
 }
 
-function playerSendData({ name, gameId, color, timestamp, socketId }) {
+function playerSendData({ gameId, name, color, timestamp, socketId }) {
     if (buzzes.has(gameId)) {
         const firstPlayer = buzzes.get(gameId);
         if (name !== firstPlayer) {
             const delta = timestamp - firstPlayer.timestamp;
             if (delta > 0) {
                 console.log("too late. Buzzes", buzzes)
+                io.to(socket.id).emit("showBuzzerData", firstPlayer)
                 io.to(socket.id).emit("notifyPlayerIsTooLate", { firstPlayer, delta })
             } else {
                 // the connection was just too late. Inform everybody.
-                buzzes.set(gameId, { name, color, timestamp })
+                buzzes.set(gameId, { name, color, timestamp, socketId, buzzerDataComplete: true })
                 const deltaSeconds = delta / 1000;
                 const deltaSecondsRounded = Math.round(deltaSeconds * 10) / 10;
                 const alertMessage = `
@@ -215,7 +216,7 @@ function playerSendData({ name, gameId, color, timestamp, socketId }) {
         }
     } else {
         // first buzzer!
-        buzzes.set(gameId, { name, color, timestamp })
+        buzzes.set(gameId, { name, color, timestamp, socketId, buzzerDataComplete: true })
         io.to(gameId).emit("showBuzzerData", {
             name,
             color,
