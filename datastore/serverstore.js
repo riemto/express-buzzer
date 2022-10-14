@@ -39,11 +39,13 @@ class ServerStore {
     }
 
     print() {
-        console.log("MAP", this.playersMap)
         this.playersMap.forEach((players, gameId) => {
             console.log("SERVERSTORE GAME ID: ", gameId);
             if (players) {
-                console.log("players: ", players.toArray())
+                console.log("players: ");
+                for (let p of players.toArray()) {
+                    console.log(p.name, p.socketId, p.score)
+                }
             } else {
                 console.log("no players")
             }

@@ -98,10 +98,6 @@ function hostPlayerScore({ gameId, socketId, name, delta }) {
     // The serverStore is up to date as well because players is
     // a reference. So no need to inject the updated player
     // back into players and players back into serverStore.
-    console.log("Does the serverstore already have the updated player?", serverStore.print())
-    serverStore.setPlayers(gameId, players);
-    console.log("is it better now?");
-    serverStore.print()
 
     io.to(gameId).emit("playerUpdated", {
         players: players.toArray()
