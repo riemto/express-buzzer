@@ -59,7 +59,7 @@ exports.connectSocket = (sio, gameSocket) => {
 function hostConnect({ gameId }, setPlayers) {
     console.log(`HOST: ${socket.id} joins show page for: ${gameId}`)
     socket.join(gameId);
-    const players = serverStore.getPlayers();
+    const players = serverStore.getPlayers(gameId);
     setPlayers(players.toArray())
     console.log("PLAYERS WHEN HOST CONNECTS", players.toArray())
 }
@@ -100,7 +100,8 @@ function hostPlayerScore({ gameId, socketId, name, delta }) {
     // back into players and players back into serverStore.
     console.log("Does the serverstore already have the updated player?", serverStore.print())
     serverStore.setPlayers(gameId, players);
-    console.log("is it better now?", serverStore.print())
+    console.log("is it better now?");
+    serverStore.print()
 
     io.to(gameId).emit("playerUpdated", {
         players: players.toArray()
@@ -133,7 +134,7 @@ function hostReset({ gameId }) {
 function playerConnect({ gameId, player }, setGameStatus) {
     const { name, socketId, color } = player;
     console.log(name, socketId, color)
-    console.log(`PLAYERCONNECT: ${socketId} aka ${name} joins room: ${gameId}`)
+    console.log(`PLAYERCONNECT: ${name} - ${socketId}`)
     socket.join(gameId);
     let players = serverStore.getPlayers(gameId);
     players.updatePlayer(socketId, player);
