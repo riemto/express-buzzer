@@ -5,10 +5,16 @@ class ServerStore {
         console.log("create a new server store")
         this.playersMap = new Map();
     }
+
     setPlayers(gameId, players) {
+        if (!gameId) {
+            console.log("SERVERSTORE wants to set players but game id not defined!")
+            return;
+        }
         console.log("SERVERSTORE: SET PLAYERS", players)
         this.playersMap.set(gameId, players);
     }
+
     getPlayers(gameId) {
         let players = this.playersMap.get(gameId);
         if (!players) {
@@ -17,6 +23,7 @@ class ServerStore {
         }
         return players;
     }
+
     remove(socketId, onSuccess) {
         this.playersMap.forEach((players, gameId) => {
             const success = players.remove(socketId);
@@ -26,9 +33,11 @@ class ServerStore {
             }
         })
     }
+
     reset(gameId) {
         this.setPlayers(gameId, new Players())
     }
+
     print() {
         console.log("MAP", this.playersMap)
         this.playersMap.forEach((players, gameId) => {
