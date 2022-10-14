@@ -1,13 +1,14 @@
+const { ServerStore } = require('./datastore/serverstore')
 let buzzes;
 let unlockedGames;
 let io;
 let socket;
-let playersMap;
+let serverStore;
 
 exports.initGame = () => {
     console.log("init game")
     buzzes = new Map(); // gameId -> first player who buzzed
-    playersMap = new Map(); // gameId -> players
+    serverStore = new ServerStore();
     unlockedGames = new Set();
 }
 
@@ -28,6 +29,7 @@ exports.connectSocket = (sio, gameSocket) => {
     socket.on("hostStartGame", hostStartGame);
     socket.on("hostUnlock", hostUnlock);
     socket.on("hostPlayerScore", hostPlayerScore);
+    socket.on("hostReset", hostReset);
 
     // PLAYER
     socket.on("playerConnect", playerConnect);
@@ -57,9 +59,9 @@ exports.connectSocket = (sio, gameSocket) => {
 function hostConnect({ gameId }, setPlayers) {
     console.log(`HOST: ${socket.id} joins show page for: ${gameId}`)
     socket.join(gameId);
-    const players = playersMap.get(gameId) || new Map();
-    setPlayers(Array.from(players.values()))
-    console.log("PLAYERS WHEN HOST CONNECTS", Array.from(players.values()))
+    const players = serverStore.getPlayers();
+    setPlayers(players.toArray())
+    console.log("PLAYERS WHEN HOST CONNECTS", players.toArray())
 }
 
 /**
@@ -72,7 +74,6 @@ function hostStartGame({ gameId }) {
     io.to(gameId).emit("unlock");
 }
 
-
 /**
  * Host unlocks all buzzers so that players are ready to hit buzzer
  */
@@ -83,19 +84,39 @@ function hostUnlock({ gameId }) {
 }
 
 function hostPlayerScore({ gameId, socketId, name, delta }) {
-    const players = playersMap.get(gameId);
+    const players = serverStore.getPlayers(gameId);
     const player = players.get(socketId);
+    if (!player) {
+        console.error("HOSTPLAYERSCORE", "Player not found with socket id", socketId)
+        return;
+    }
     if (player.name == name) {
         player.score = (player.score || 0) + delta;
     }
-    // note: Since it is a reference to the player
+    // note: Since players is referenced to player,
     // players is already up to date.
-    // playersMap is up to date as well because players is
+    // The serverStore is up to date as well because players is
     // a reference. So no need to inject the updated player
-    // back into players and players back into playersMap.
+    // back into players and players back into serverStore.
+    console.log("Does the serverstore already have the updated player?", serverStore.print())
+    serverStore.setPlayers(gameId, players);
+    console.log("is it better now?", serverStore.print())
 
     io.to(gameId).emit("playerUpdated", {
-        players: Array.from(players.values())
+        players: players.toArray()
+    })
+}
+
+function hostReset({ gameId }) {
+    // reset buzzes
+    buzzes.delete(gameId);
+
+    // reset players and update host
+    serverStore.reset(gameId);
+    const players = serverStore.getPlayers(gameId);
+
+    io.to(gameId).emit("playerUpdated", {
+        players: players.toArray()
     })
 }
 
@@ -111,16 +132,18 @@ function hostPlayerScore({ gameId, socketId, name, delta }) {
 function playerConnect({ gameId, player }, setGameStatus) {
     const { name, socketId, color } = player;
     console.log(name, socketId, color)
-    console.log(`${socketId} aka ${name} joins room: ${gameId}`)
+    console.log(`PLAYERCONNECT: ${socketId} aka ${name} joins room: ${gameId}`)
     socket.join(gameId);
-    let players = playersMap.get(gameId) || new Map();
-    const oldVersionOfPlayer = players.get(socketId);
-    console.log("old version of player: ", oldVersionOfPlayer)
-    const updatedPlayer = { ...oldVersionOfPlayer, ...player };
-    console.log("updated version of player: ", updatedPlayer)
-    players.set(socketId, updatedPlayer);
-    playersMap.set(gameId, players)
-    console.log("players in game", Array.from(players.values()))
+    let players = serverStore.getPlayers(gameId);
+    players.updatePlayer(socketId, player);
+    // const oldVersionOfPlayer = players.get(socketId);
+    // const updatedPlayer = { ...oldVersionOfPlayer, ...player };
+    // players.set(socketId, updatedPlayer);
+
+    // TODO: is this neeeded:
+    serverStore.setPlayers(gameId, players);
+
+    console.log("PLAYERCONNECT: players in game", players.toArray())
     // if buzzer already pressed at moment where socket joins
     // notify him so he sees same results as others.
     if (buzzes.has(gameId)) {
@@ -144,7 +167,7 @@ function playerConnect({ gameId, player }, setGameStatus) {
 
     // Inform rest that the player connected
     io.to(gameId).emit("playerUpdated", {
-        players: Array.from(players.values())
+        players: players.toArray()
     })
 }
 
@@ -216,14 +239,8 @@ function playerSendData({ name, gameId, color, timestamp, socketId }) {
 function disconnecting() {
     console.log("disconnecting", socket.id);
     // Remove socket from players and update game
-    playersMap.forEach((players, gameId) => {
-        success = players.delete(socket.id);
-        if (success) {
-            console.log('successfully removed ', socket.id)
-            io.to(gameId).emit("playerUpdated", {
-                players: Array.from(players.values())
-            })
-        }
+    serverStore.remove(socket.id, (players, gameId) => {
+        io.to(gameId).emit("playerUpdated", players)
     })
 }
 
