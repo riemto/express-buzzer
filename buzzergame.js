@@ -110,6 +110,7 @@ function hostPlayerScore({ gameId, socketId, name, delta }) {
 function hostReset({ gameId }) {
     // reset buzzes
     buzzes.delete(gameId);
+    unlockedGames.delete(gameId);
 
     // reset players and update host
     serverStore.reset(gameId);
