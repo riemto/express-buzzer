@@ -11,13 +11,13 @@ class ServerStore {
             console.log("SERVERSTORE wants to set players but game id not defined!")
             return;
         }
-        console.log("SERVERSTORE: SET PLAYERS", players)
         this.playersMap.set(gameId, players);
     }
 
     getPlayers(gameId) {
         let players = this.playersMap.get(gameId);
         if (!players) {
+            console.log("SERVERSTORE: NO PLAYERS YET")
             players = new Players();
             this.setPlayers(gameId, players);
         }

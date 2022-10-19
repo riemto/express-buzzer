@@ -56,8 +56,8 @@ exports.connectSocket = (sio, gameSocket) => {
  * @param gameId id of game from URL
  * @param name hostname
  */
-function hostConnect({ gameId }, setPlayers) {
-    console.log(`HOST: ${socket.id} joins show page for: ${gameId}`)
+async function hostConnect({ gameId, socketId }, setPlayers) {
+    console.log(`HOST: ${socket.id}  VS ${socketId} joins show page for: ${gameId}`)
     socket.join(gameId);
     const players = serverStore.getPlayers(gameId);
     setPlayers(players.toArray())
@@ -232,8 +232,9 @@ function playerSendData({ gameId, name, color, timestamp, socketId }) {
 /**
  * This function is called right before disconnecting
  */
-function disconnecting() {
+async function disconnecting(reason) {
     console.log("disconnecting", socket.id);
+    console.log("REASON", reason)
     // Remove socket from players and update game
     serverStore.remove(socket.id, (players, gameId) => {
         io.to(gameId).emit("playerUpdated", players)
