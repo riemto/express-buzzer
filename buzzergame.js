@@ -232,9 +232,10 @@ function playerSendData({ gameId, name, color, timestamp, socketId }) {
 /**
  * This function is called right before disconnecting
  */
-async function disconnecting(reason) {
+function disconnecting(reason) {
     console.log("disconnecting", socket.id);
     console.log("REASON", reason)
+    console.log("SOCKET ROOMS: ", socket.rooms);
     // Remove socket from players and update game
     serverStore.remove(socket.id, (players, gameId) => {
         io.to(gameId).emit("playerUpdated", players)
