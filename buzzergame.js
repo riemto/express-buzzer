@@ -129,9 +129,18 @@ function hostReset({ gameId }) {
  */
 function playerConnect({ gameId, player }, setGameStatus) {
     const { name, socketId, color } = player;
+    if (!socketId) {
+        console.log("PLAYERCONNECT: socketId not defined")
+        return;
+    }
     console.log(name, socketId, color)
     console.log(`PLAYERCONNECT: ${name} - ${socketId}`)
     socket.join(gameId);
+    if (!name || name == "") {
+        console.log("PLAYERCONNECT: but player does not have a name yet")
+        return;
+    }
+
     let players = serverStore.getPlayers(gameId);
     players.updatePlayer(socketId, player);
     // const oldVersionOfPlayer = players.get(socketId);
@@ -140,6 +149,7 @@ function playerConnect({ gameId, player }, setGameStatus) {
 
     // TODO: is this neeeded:
     serverStore.setPlayers(gameId, players);
+
 
     console.log("PLAYERCONNECT: players in game", players.toArray())
     // if buzzer already pressed at moment where socket joins
