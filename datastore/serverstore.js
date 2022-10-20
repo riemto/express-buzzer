@@ -4,11 +4,33 @@ class ServerStore {
     constructor() {
         console.log("create a new server store")
         this.playersMap = new Map();
+        this.hosts = new Set();
+    }
+
+    addHost(hostSocketId) {
+        console.log("SERVERSTORE ADD HOST", hostSocketId)
+        this.hosts.add(hostSocketId);
+    }
+
+    isHost(socketId) {
+        return this.hosts.has(socketId);
+    }
+
+    removeHost(socketId) {
+        return this.hosts.delete(socketId);
     }
 
     setPlayers(gameId, players) {
         if (!gameId) {
             console.log("SERVERSTORE wants to set players but game id not defined!")
+            return;
+        }
+        if (!players.name) {
+            console.log("SERVERSTORE: player does not have a name")
+            return;
+        }
+        if (!players.socketId) {
+            console.log("SERVERSTORE: player does not have a socket id")
             return;
         }
         this.playersMap.set(gameId, players);

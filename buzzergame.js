@@ -59,6 +59,7 @@ exports.connectSocket = (sio, gameSocket) => {
 async function hostConnect({ gameId, socketId }, setPlayers) {
     console.log(`HOST: ${socket.id}  VS ${socketId} joins show page for: ${gameId}`)
     socket.join(gameId);
+    serverStore.addHost(socketId);
     const players = serverStore.getPlayers(gameId);
     setPlayers(players.toArray())
     console.log("PLAYERS WHEN HOST CONNECTS", players.toArray())
@@ -246,10 +247,15 @@ function disconnecting(reason) {
     console.log("disconnecting", socket.id);
     console.log("REASON", reason)
     console.log("SOCKET ROOMS: ", socket.rooms);
-    // Remove socket from players and update game
-    serverStore.remove(socket.id, (players, gameId) => {
-        io.to(gameId).emit("playerUpdated", players)
-    })
+    if (serverStore.isHost(socket.id)) {
+        console.log("------- DISCONNECT HOST! --------")
+        serverStore.removeHost(socket.id)
+    } else {
+        // Remove socket from players and update game
+        serverStore.remove(socket.id, (players, gameId) => {
+            io.to(gameId).emit("playerUpdated", players)
+        })
+    }
 }
 
 function disconnect() {
