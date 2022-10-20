@@ -7,7 +7,7 @@ class Players {
         console.log('PLAYERS: get ', userId);
         const player = this.players.get(userId);
         if (!player) {
-            console.error(`player not found with socket id ${userId}`)
+            console.error(`player not found with user id ${userId}`)
             console.log('Available players: ', this.players)
         }
         return player;
