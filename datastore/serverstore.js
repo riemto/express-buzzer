@@ -38,11 +38,13 @@ class ServerStore {
         return players;
     }
 
-    remove(userId, onSuccess) {
+    remove(socketId, onSuccess) {
         this.playersMap.forEach((players, gameId) => {
-            const success = players.remove(userId);
+            console.log("remove player with socket id", socketId)
+            console.log("players", players)
+            const success = players.remove(socketId);
             if (success) {
-                console.log('successfully removed ', userId)
+                console.log('successfully removed ', socketId)
                 onSuccess(players.toArray(), gameId)
             }
         })

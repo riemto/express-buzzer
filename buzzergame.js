@@ -2,7 +2,7 @@ const { ServerStore } = require('./datastore/serverstore')
 let buzzes;
 let unlockedGames;
 let io;
-let socket;
+var socket;
 let serverStore;
 
 exports.initGame = () => {
@@ -143,7 +143,7 @@ function playerConnect({ gameId, player }, setGameStatus) {
     }
 
     let players = serverStore.getPlayers(gameId);
-    players.updatePlayer(userId, player);
+    players.updatePlayer(userId, socket.id, player);
     // const oldVersionOfPlayer = players.get(userId);
     // const updatedPlayer = { ...oldVersionOfPlayer, ...player };
     // players.set(userId, updatedPlayer);
@@ -253,6 +253,7 @@ function disconnecting(reason) {
     } else {
         // Remove socket from players and update game
         serverStore.remove(socket.id, (players, gameId) => {
+            console.log("REMOVE PLAYER -> INFORM EVERYBODY IN GAME", gameId, players)
             io.to(gameId).emit("playerUpdated", players)
         })
     }
