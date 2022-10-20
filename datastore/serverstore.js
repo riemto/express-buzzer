@@ -25,14 +25,6 @@ class ServerStore {
             console.log("SERVERSTORE wants to set players but game id not defined!")
             return;
         }
-        if (!players.name) {
-            console.log("SERVERSTORE: player does not have a name")
-            return;
-        }
-        if (!players.userId) {
-            console.log("SERVERSTORE: player does not have a socket id")
-            return;
-        }
         this.playersMap.set(gameId, players);
     }
 
