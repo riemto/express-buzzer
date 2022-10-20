@@ -7,17 +7,17 @@ class ServerStore {
         this.hosts = new Set();
     }
 
-    addHost(hostSocketId) {
-        console.log("SERVERSTORE ADD HOST", hostSocketId)
-        this.hosts.add(hostSocketId);
+    addHost(hostUserId) {
+        console.log("SERVERSTORE ADD HOST", hostUserId)
+        this.hosts.add(hostUserId);
     }
 
-    isHost(socketId) {
-        return this.hosts.has(socketId);
+    isHost(userId) {
+        return this.hosts.has(userId);
     }
 
-    removeHost(socketId) {
-        return this.hosts.delete(socketId);
+    removeHost(userId) {
+        return this.hosts.delete(userId);
     }
 
     setPlayers(gameId, players) {
@@ -29,7 +29,7 @@ class ServerStore {
             console.log("SERVERSTORE: player does not have a name")
             return;
         }
-        if (!players.socketId) {
+        if (!players.userId) {
             console.log("SERVERSTORE: player does not have a socket id")
             return;
         }
@@ -46,11 +46,11 @@ class ServerStore {
         return players;
     }
 
-    remove(socketId, onSuccess) {
+    remove(userId, onSuccess) {
         this.playersMap.forEach((players, gameId) => {
-            const success = players.remove(socketId);
+            const success = players.remove(userId);
             if (success) {
-                console.log('successfully removed ', socketId)
+                console.log('successfully removed ', userId)
                 onSuccess(players.toArray(), gameId)
             }
         })
@@ -66,7 +66,7 @@ class ServerStore {
             if (players) {
                 console.log("players: ");
                 for (let p of players.toArray()) {
-                    console.log(p.name, p.socketId, p.score)
+                    console.log(p.name, p.userId, p.score)
                 }
             } else {
                 console.log("no players")

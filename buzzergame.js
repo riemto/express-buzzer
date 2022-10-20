@@ -56,10 +56,10 @@ exports.connectSocket = (sio, gameSocket) => {
  * @param gameId id of game from URL
  * @param name hostname
  */
-async function hostConnect({ gameId, socketId }, setPlayers) {
-    console.log(`HOST: ${socket.id}  VS ${socketId} joins show page for: ${gameId}`)
+async function hostConnect({ gameId, userId }, setPlayers) {
+    console.log(`HOST: ${socket.id}  VS ${userId} joins show page for: ${gameId}`)
     socket.join(gameId);
-    serverStore.addHost(socketId);
+    serverStore.addHost(userId);
     const players = serverStore.getPlayers(gameId);
     setPlayers(players.toArray())
     console.log("PLAYERS WHEN HOST CONNECTS", players.toArray())
@@ -84,11 +84,11 @@ function hostUnlock({ gameId }) {
     io.to(gameId).emit("unlock")
 }
 
-function hostPlayerScore({ gameId, socketId, name, delta }) {
+function hostPlayerScore({ gameId, userId, name, delta }) {
     const players = serverStore.getPlayers(gameId);
-    const player = players.get(socketId);
+    const player = players.get(userId);
     if (!player) {
-        console.error("HOSTPLAYERSCORE", "Player not found with socket id", socketId)
+        console.error("HOSTPLAYERSCORE", "Player not found with socket id", userId)
         return;
     }
     if (player.name == name) {
@@ -129,13 +129,13 @@ function hostReset({ gameId }) {
  * @param setGameStatus callback to provide game status to client.
  */
 function playerConnect({ gameId, player }, setGameStatus) {
-    const { name, socketId, color } = player;
-    if (!socketId) {
-        console.log("PLAYERCONNECT: socketId not defined")
+    const { name, userId, color } = player;
+    if (!userId) {
+        console.log("PLAYERCONNECT: userId not defined")
         return;
     }
-    console.log(name, socketId, color)
-    console.log(`PLAYERCONNECT: ${name} - ${socketId}`)
+    console.log(name, userId, color)
+    console.log(`PLAYERCONNECT: ${name} - ${userId}`)
     socket.join(gameId);
     if (!name || name == "") {
         console.log("PLAYERCONNECT: but player does not have a name yet")
@@ -143,10 +143,10 @@ function playerConnect({ gameId, player }, setGameStatus) {
     }
 
     let players = serverStore.getPlayers(gameId);
-    players.updatePlayer(socketId, player);
-    // const oldVersionOfPlayer = players.get(socketId);
+    players.updatePlayer(userId, player);
+    // const oldVersionOfPlayer = players.get(userId);
     // const updatedPlayer = { ...oldVersionOfPlayer, ...player };
-    // players.set(socketId, updatedPlayer);
+    // players.set(userId, updatedPlayer);
 
     // TODO: is this neeeded:
     serverStore.setPlayers(gameId, players);
@@ -175,7 +175,7 @@ function playerConnect({ gameId, player }, setGameStatus) {
     })
 }
 
-function playerHitBuzzer({ gameId, name, color, socketId },
+function playerHitBuzzer({ gameId, name, color, userId },
     correctServerTimeAndEmitDataToServer) {
     const timeBuzzReceivedOnServer = Date.now();
     // send server time back to client so it can compute the latency
@@ -189,12 +189,12 @@ function playerHitBuzzer({ gameId, name, color, socketId },
             name,
             color,
             buzzerDataComplete: false,
-            socketId
+            userId
         })
     }
 }
 
-function playerSendData({ gameId, name, color, timestamp, socketId }) {
+function playerSendData({ gameId, name, color, timestamp, userId }) {
     if (buzzes.has(gameId)) {
         const firstBuzzData = buzzes.get(gameId);
         if (name !== firstBuzzData.name) {
@@ -204,7 +204,7 @@ function playerSendData({ gameId, name, color, timestamp, socketId }) {
                 io.to(socket.id).emit("notifyPlayerIsTooLate", { firstBuzzData, delta })
             } else {
                 // the connection was just too late. Inform everybody.
-                buzzes.set(gameId, { name, color, timestamp, socketId, buzzerDataComplete: true })
+                buzzes.set(gameId, { name, color, timestamp, userId, buzzerDataComplete: true })
                 const deltaSeconds = delta / 1000;
                 const deltaSecondsRounded = Math.round(deltaSeconds * 10) / 10;
                 const alertMessage = `
@@ -215,7 +215,7 @@ function playerSendData({ gameId, name, color, timestamp, socketId }) {
                     color,
                     alertMessage,
                     buzzerDataComplete: true,
-                    socketId
+                    userId
                 })
             }
         } else {
@@ -224,12 +224,12 @@ function playerSendData({ gameId, name, color, timestamp, socketId }) {
         }
     } else {
         // first buzzer!
-        buzzes.set(gameId, { name, color, timestamp, socketId, buzzerDataComplete: true })
+        buzzes.set(gameId, { name, color, timestamp, userId, buzzerDataComplete: true })
         io.to(gameId).emit("showBuzzerData", {
             name,
             color,
             buzzerDataComplete: true,
-            socketId
+            userId
         })
     }
 }

@@ -3,11 +3,11 @@ class Players {
         this.players = new Map();
     }
 
-    get(socketId) {
-        console.log('PLAYERS: get ', socketId);
-        const player = this.players.get(socketId);
+    get(userId) {
+        console.log('PLAYERS: get ', userId);
+        const player = this.players.get(userId);
         if (!player) {
-            console.error(`player not found with socket id ${socketId}`)
+            console.error(`player not found with socket id ${userId}`)
             console.log('Available players: ', this.players)
         }
         return player;
@@ -15,15 +15,15 @@ class Players {
     toArray() {
         return Array.from(this.players.values());
     }
-    updatePlayer(socketId, statesToUpdate) {
-        const prev = this.get(socketId);
+    updatePlayer(userId, statesToUpdate) {
+        const prev = this.get(userId);
         console.log('old', prev)
         const upd = { ...prev, ...statesToUpdate }
         console.log('upd', upd)
-        this.players.set(socketId, upd)
+        this.players.set(userId, upd)
     }
-    remove(socketId) {
-        return this.players.delete(socketId);
+    remove(userId) {
+        return this.players.delete(userId);
     }
 }
 
