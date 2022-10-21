@@ -27,6 +27,8 @@ class Players {
     removeSocketId(socketId) {
         const userId = this.sid2userId.get(socketId);
         if (!userId) return false;
+
+        this.sid2userId.delete(socketId);
         let player = this.get(userId);
         player.socketId = '';
         console.log("removed socket id", socketId, "from player", player)
