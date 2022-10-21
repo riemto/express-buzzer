@@ -160,6 +160,11 @@ exports.connectSocket = (sio, gameSocket) => {
         // TODO: is this neeeded:
         serverStore.setPlayers(gameId, players);
 
+        // do this before triggering showData
+        // because unlock will reset buzzerData on client side.
+        if (unlockedGames.has(gameId)) {
+            io.to(gameSocket.id).emit("unlock")
+        }
 
         console.log("PLAYERCONNECT: players in game", players.toArray())
         // if buzzer already pressed at moment where gameSocket joins
@@ -167,15 +172,16 @@ exports.connectSocket = (sio, gameSocket) => {
         if (buzzes.has(gameId)) {
             const firstBuzzData = buzzes.get(gameId);
             io.to(gameSocket.id).emit("showBuzzerData", { ...firstBuzzData, buzzerDataComplete: true })
-            // emit a note as well so he is aware of what he is seeing
-            io.to(gameSocket.id).emit("notifyLatecomer")
+            if (name !== firstBuzzData.name) {
+                // emit a note as well so he is aware of what he is seeing
+                io.to(gameSocket.id).emit("notifyLatecomer")
+            }
         }
 
-        if (unlockedGames.has(gameId)) {
-            io.to(gameSocket.id).emit("unlock")
-        }
         if (setGameStatus) {
-            setGameStatus({ unlocked: unlockedGames.has(gameId) })
+            setGameStatus({
+                unlocked: unlockedGames.has(gameId)
+            })
         }
 
         // Inform rest that the player connected
