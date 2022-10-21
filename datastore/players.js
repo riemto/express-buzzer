@@ -19,14 +19,18 @@ class Players {
     updatePlayer(userId, socketId, statesToUpdate) {
         const prev = this.get(userId);
         console.log('old', prev)
-        const upd = { ...prev, ...statesToUpdate }
+        const upd = { ...prev, ...statesToUpdate, socketId }
         console.log('upd', upd)
         this.players.set(userId, upd)
         this.sid2userId.set(socketId, userId);
     }
-    remove(socketId) {
+    removeSocketId(socketId) {
         const userId = this.sid2userId.get(socketId);
-        return this.players.delete(userId);
+        if (!userId) return false;
+        let player = this.get(userId);
+        player.socketId = '';
+        console.log("removed socket id", socketId, "from player", player)
+        return true;
     }
 }
 

@@ -3,7 +3,7 @@ const { Players } = require('./players')
 class ServerStore {
     constructor() {
         console.log("create a new server store")
-        this.playersMap = new Map();
+        this.playersMap = new Map(); // gameId -> players
         this.hosts = new Set();
     }
 
@@ -42,7 +42,7 @@ class ServerStore {
         this.playersMap.forEach((players, gameId) => {
             console.log("remove player with socket id", socketId)
             console.log("players", players)
-            const success = players.remove(socketId);
+            const success = players.removeSocketId(socketId);
             if (success) {
                 console.log('successfully removed ', socketId)
                 onSuccess(players.toArray(), gameId)
