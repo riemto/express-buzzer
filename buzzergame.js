@@ -250,9 +250,9 @@ exports.connectSocket = (sio, gameSocket) => {
             serverStore.removeHost(gameSocket.id)
         } else {
             // Remove gameSocket from players and update game
-            serverStore.remove(gameSocket.id, (players, gameId) => {
+            serverStore.removeSocketId(gameSocket.id, (players, gameId) => {
                 console.log("REMOVE PLAYER -> INFORM EVERYBODY IN GAME", gameId, players)
-                io.to(gameId).emit("playerUpdated", players)
+                io.to(gameId).emit("playerUpdated", { players })
             })
         }
     }

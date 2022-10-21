@@ -38,7 +38,7 @@ class ServerStore {
         return players;
     }
 
-    remove(socketId, onSuccess) {
+    removeSocketId(socketId, onSuccess) {
         this.playersMap.forEach((players, gameId) => {
             console.log("remove player with socket id", socketId)
             console.log("players", players)
