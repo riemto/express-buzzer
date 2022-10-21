@@ -34,6 +34,7 @@ exports.connectSocket = (sio, gameSocket) => {
     gameSocket.on("playerConnect", playerConnect);
     gameSocket.on("playerHitBuzzer", playerHitBuzzer)
     gameSocket.on("playerSendData", playerSendData);
+    gameSocket.on("playerPing", playerPing);
 
     // DEBUG
     gameSocket.on("debugPing", debugPing);
@@ -247,6 +248,10 @@ exports.connectSocket = (sio, gameSocket) => {
                 userId
             })
         }
+    }
+
+    function playerPing({ gameId, name, color, userId }) {
+        io.to(gameId).emit("hostShowPlayerPing", { name, color, userId })
     }
 
     /* *****************************
