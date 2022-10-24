@@ -26,6 +26,7 @@ exports.connectSocket = (sio, gameSocket) => {
     gameSocket.on("hostConnect", hostConnect);
     gameSocket.on("hostStartGame", hostStartGame);
     gameSocket.on("hostStopGame", hostStopGame);
+    gameSocket.on("hostResolve", hostResolve);
     gameSocket.on("hostUnlock", hostUnlock);
     gameSocket.on("hostPlayerScore", hostPlayerScore);
     gameSocket.on("hostReset", hostReset);
@@ -81,6 +82,13 @@ exports.connectSocket = (sio, gameSocket) => {
     function hostStopGame({ gameId }) {
         unlockedGames.delete(gameId);
         console.log("stopped", gameId)
+        console.log("unlocked games:", unlockedGames)
+        io.to(gameId).emit("lock");
+    }
+
+    function hostResolve({ gameId }) {
+        unlockedGames.delete(gameId);
+        console.log("resolve", gameId)
         console.log("unlocked games:", unlockedGames)
         io.to(gameId).emit("lock");
     }
