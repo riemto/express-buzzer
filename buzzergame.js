@@ -73,7 +73,7 @@ exports.connectSocket = (sio, gameSocket) => {
         unlockedGames.add(gameId);
         console.log("started", gameId)
         console.log("unlocked games:", unlockedGames)
-        io.to(gameId).emit("unlock");
+        io.to(gameId).emit("unlockPlayers", { silent: false });
     }
 
     /**
@@ -83,23 +83,23 @@ exports.connectSocket = (sio, gameSocket) => {
         unlockedGames.delete(gameId);
         console.log("stopped", gameId)
         console.log("unlocked games:", unlockedGames)
-        io.to(gameId).emit("lock");
+        io.to(gameId).emit("lock", { silent: false });
     }
 
-    function hostResolve({ gameId }) {
+    function hostResolve({ gameId, silent }) {
         unlockedGames.delete(gameId);
         console.log("resolve", gameId)
         console.log("unlocked games:", unlockedGames)
-        io.to(gameId).emit("lock");
+        io.to(gameId).emit("lock", { silent });
     }
 
     /**
      * Host unlocks all buzzers so that players are ready to hit buzzer
      */
-    function hostUnlock({ gameId }) {
+    function hostUnlock({ gameId, silent }) {
         // reset the buzzers
         buzzes.delete(gameId);
-        io.to(gameId).emit("unlock")
+        io.to(gameId).emit("unlockPlayers", { silent })
     }
 
     function hostPlayerScore({ gameId, userId, name, delta }) {
@@ -172,7 +172,7 @@ exports.connectSocket = (sio, gameSocket) => {
         // do this before triggering showData
         // because unlock will reset buzzerData on client side.
         if (unlockedGames.has(gameId)) {
-            io.to(gameSocket.id).emit("unlock")
+            io.to(gameSocket.id).emit("unlockPlayers", { silent: true })
         }
 
         console.log("PLAYERCONNECT: players in game", players.toArray())
