@@ -138,10 +138,10 @@ exports.connectSocket = (sio, gameSocket) => {
         })
     }
 
-    function hostGameOver({ gameId }) {
+    function hostGameOver({ gameId, winners }) {
         unlockedGames.delete(gameId);
         console.log("GAME OVER", gameId)
-        io.to(gameId).emit("gameOver", { silent: false });
+        io.to(gameId).emit("gameOver", { silent: false, winners });
     }
 
     /* *****************************
