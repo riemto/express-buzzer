@@ -30,6 +30,7 @@ exports.connectSocket = (sio, gameSocket) => {
     gameSocket.on("hostUnlock", hostUnlock);
     gameSocket.on("hostPlayerScore", hostPlayerScore);
     gameSocket.on("hostReset", hostReset);
+    gameSocket.on("hostGameOver", hostGameOver);
 
     // PLAYER
     gameSocket.on("playerConnect", playerConnect);
@@ -135,6 +136,12 @@ exports.connectSocket = (sio, gameSocket) => {
         io.to(gameId).emit("playerUpdated", {
             players: players.toArray()
         })
+    }
+
+    function hostGameOver({ gameId }) {
+        unlockedGames.delete(gameId);
+        console.log("GAME OVER", gameId)
+        io.to(gameId).emit("gameOver", { silent: false });
     }
 
     /* *****************************
